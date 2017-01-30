@@ -115,20 +115,22 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			Currency: getTransferCurrency(mtMessage),
 			Type: "vostro",
 		}
+
+		senderOrganization := Organization {
+			BIC: getSender(mtMessage),
+			Account: getCredAccount(mtMessage),
+		}
+
 		test, _ := json.Marshal(senderAccountKey)
 		test, _ = json.Marshal(receiverAccountKey)
+		test, _ = json.Marshal(senderOrganization)
+
 
 		strings.Replace(token, "","",-1)
 		strings.Replace(mapId, "","",-1)
 
 		return nil, errors.New("RESULT: " + string(test));
 
-
-		//senderOrganization := Organization {
-		//	BIC: getSender(mtMessage),
-		//	Account: getCredAccount(mtMessage),
-		//}
-		//
 		//receiverOrganization := Organization {
 		//	BIC: getIntermediaryBIC(mtMessage),
 		//	Account: getBenAccount(mtMessage),
