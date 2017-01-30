@@ -11,6 +11,7 @@ import (
 	"github.com/hyperledger/fabric/core/util"
 	"math/big"
 	"time"
+	"strconv"
 )
 
 const KVS_HANLDER_KEY = "KVS_HANDLER_KEY"
@@ -138,9 +139,6 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			TransactionDetails: Details { InputMessage: mtMessage },
 		}
 
-		test, _ := json.Marshal(transaction)
-		return nil, errors.New("RESULT: " +  string(test));
-
 		// Validate transaction
 		transaction.Status = "Success"
 
@@ -252,6 +250,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
 		stub.InvokeChaincode(mapId, invokeArgs)
 
+		test, _ := json.Marshal(transaction)
+		return nil, errors.New("RESULT: " +  string(test));
+
 		return nil, nil
 	default:
 		return nil, errors.New("Unsupported operation")
@@ -267,7 +268,7 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 
 func getBlock(mtMessage string, blockNumber int) string {
 	if blockNumber != 4 {
-		startIndex := strings.Index(mtMessage, "{" + string(blockNumber) + ":") + 4
+		startIndex := strings.Index(mtMessage, "{" + strconv.Itoa(blockNumber) + ":") + 3
 		block := mtMessage[startIndex : startIndex + strings.Index(mtMessage[startIndex:], "}")]
 		return block
 	} else {
@@ -292,15 +293,14 @@ func getTag(block4 string, tagName string) string {
 
 func getReceiver(mtMessage string) string {
 	block2 := getBlock(mtMessage, 2)
-	return block2
-	//if block2 != "" {
-	//	if (len(block2) == 17 || len(block2) == 21) {
-	//		return block2[4:12]
-	//	} else if len(block2) == 47 {
-	//		return block2[14:22]
-	//	}
-	//}
-	//return ""
+	if block2 != "" {
+		if (len(block2) == 17 || len(block2) == 21) {
+			return block2[4:12]
+		} else if len(block2) == 47 {
+			return block2[14:22]
+		}
+	}
+	return ""
 }
 
 func getSender(mtMessage string) string {
