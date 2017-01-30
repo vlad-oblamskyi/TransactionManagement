@@ -23,8 +23,8 @@ type TransactionManagement struct {
 }
 
 type Details struct {
-	InputMessage  string
-	OutputMessage string
+	InputMessage  string  `json:"inputMessage"`
+	OutputMessage string  `json:"outputMessage"`
 }
 
 type AccountKey struct {
@@ -48,17 +48,17 @@ type Organization struct {
 }
 
 type Transaction struct {
-	TransactionId string
-	Sender Organization
-	Receiver Organization
-	SenderAccountKey AccountKey
-	ReceiverAccountKey AccountKey
-	Fee string
-	Amount string
-	TransactionDetails Details
-	Status string
-	Comment string
-	Time string
+	TransactionId string            `json:"transactionId"`
+	Sender Organization             `json:"sender"`
+	Receiver Organization           `json:"receiver"`
+	SenderAccountKey AccountKey     `json:"senderAccountKey"`
+	ReceiverAccountKey AccountKey   `json:"receiverAccountKey"`
+	Fee string                      `json:"fee"`
+	Amount string                   `json:"amount"`
+	TransactionDetails Details      `json:"details"`
+	Status string                   `json:"status"`
+	Comment string                  `json:"comment"`
+	Time string                     `json:"time"`
 }
 
 type PermissionAccountKey struct {
@@ -248,6 +248,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		jsonTransaction, _ := json.Marshal(transaction)
 		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
 		stub.InvokeChaincode(mapId, invokeArgs)
+
+		return nil, errors.New("RESULT: " + string(jsonTransaction));
+
 
 		return nil, nil
 	default:
