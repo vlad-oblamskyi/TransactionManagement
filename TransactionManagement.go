@@ -118,7 +118,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 
 		senderOrganization := Organization {
 			BIC: getSender(mtMessage),
-			Account: getCredAccount(mtMessage),
+			Account: "",
 		}
 
 		test, _ := json.Marshal(senderAccountKey)
