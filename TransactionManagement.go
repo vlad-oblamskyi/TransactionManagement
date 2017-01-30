@@ -244,6 +244,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 
 			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
 			jsonSender, _ := json.Marshal(sender)
+
+			return nil, errors.New("RESULT: " + string(jsonSenderAccountKey) + "; " + string(jsonSender))
 			senderInvokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonSender))
 			stub.InvokeChaincode(mapId, senderInvokeArgs)
 
