@@ -264,6 +264,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			panic(err)
 		}
 		sender.Transactions = append(sender.Transactions, transaction)
+		sender.Amount = "20"
 
 		jsonNewSenderAccountValue, _ := json.Marshal(sender)
 		invokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonNewSenderAccountValue))
