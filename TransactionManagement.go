@@ -104,15 +104,15 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 
 		// Parse MT Message
 		senderAccountKey := AccountKey {
-			HolderBIC: getIntermediaryBIC(mtMessage),
+			HolderBIC: getReceiver(mtMessage),
 			OwnerBIC: getSender(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
 			Type: "nostro",
 		}
 
 		receiverAccountKey := AccountKey {
-			HolderBIC: getIntermediaryBIC(mtMessage),
-			OwnerBIC: getReceiver(mtMessage),
+			HolderBIC: getReceiver(mtMessage),
+			OwnerBIC: getIntermediaryBIC(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
 			Type: "vostro",
 		}
@@ -151,6 +151,11 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			transaction.Comment = "Unable to get sender account from the KVS"
 		}
 
+		if (account.Amount == "" && account.Currency == "") {
+			transaction.Status = "Failure"
+			transaction.Comment = "Unable to get sender account from the KVS"
+		}
+
 		jsonUserKey, _ := b64.StdEncoding.DecodeString(token)
 		queryArgs = util.ToChaincodeArgs("function", string(jsonUserKey))
 		queryResult, _ = stub.QueryChaincode(mapId, queryArgs)
@@ -168,7 +173,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 				allowTransfer = true
 			}
 		}
-		if !allowTransfer {
+		if !allowTransfer || len(userDetails.Permissions) == 0 {
 			transaction.Status = "Failure"
 			transaction.Comment = "User doesn't have the permission for the action"
 		}
@@ -184,9 +189,6 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			transaction.Status = "Failure"
 			transaction.Comment = "Unable to transfer the requested amount"
 		}
-		test, _ := json.Marshal(account)
-		return nil, errors.New("RESULT: " +  string(test));
-
 
 		// Prepare output message
 		newAmount := new(big.Rat).Sub(transferableAmount, fee)
@@ -252,9 +254,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		jsonTransaction, _ := json.Marshal(transaction)
 		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
 		stub.InvokeChaincode(mapId, invokeArgs)
-		//
-		//test, _ := json.Marshal(transaction)
-		//return nil, errors.New("RESULT: " +  string(test));
+
+		test, _ := json.Marshal(transaction)
+		return nil, errors.New("RESULT: " +  string(test));
 
 		return nil, nil
 	default:
