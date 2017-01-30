@@ -267,8 +267,8 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 
 func getBlock(mtMessage string, blockNumber int) string {
 	if blockNumber != 4 {
-		startIndex := strings.Index(mtMessage, "{" + string(blockNumber) + ":")
-		block := mtMessage[startIndex + 3 : strings.Index(mtMessage[startIndex + 3 :], "}")]
+		startIndex := strings.Index(mtMessage, "{" + string(blockNumber) + ":") + 4
+		block := mtMessage[startIndex : startIndex + strings.Index(mtMessage[startIndex:], "}")]
 		return block
 	} else {
 		r, _ := regexp.Compile("{4:(\\s*.*)+-}");
