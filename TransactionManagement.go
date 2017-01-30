@@ -211,6 +211,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		transaction.TransactionDetails.OutputMessage = outputMessage
 		transaction.Time = time.Now().UTC().Format(time.RFC3339)
 
+		var newSenderAmount string
+		var newReceiverAmount string
 		if (transaction.Status == "Success") {
 			state, _ = stub.GetState(KVS_HANLDER_KEY)
 			mapId = string(state);
@@ -241,19 +243,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			currentAmount.Sub(currentAmount, fee)
 			receiverAmount.Add(receiverAmount, transferableAmount)
 
-			sender.Amount = currentAmount.FloatString(2)
-			receiver.Amount = receiverAmount.FloatString(2)
-
-			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
-			jsonSender, _ := json.Marshal(sender)
-
-			senderInvokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonSender))
-			stub.InvokeChaincode(mapId, senderInvokeArgs)
-
-			jsonReceiverAccountKey, _ = json.Marshal(transaction.ReceiverAccountKey)
-			jsonReceiver, _ := json.Marshal(receiver)
-			receiverInvokeArgs := util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonReceiver))
-			stub.InvokeChaincode(mapId, receiverInvokeArgs)
+			newSenderAmount = currentAmount.FloatString(2)
+			newReceiverAmount = receiverAmount.FloatString(2)
 		}
 
 		var sender AccountValue
@@ -264,7 +255,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			panic(err)
 		}
 		sender.Transactions = append(sender.Transactions, transaction)
-		sender.Amount = "20"
+		sender.Amount = newSenderAmount
 
 		jsonNewSenderAccountValue, _ := json.Marshal(sender)
 		invokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonNewSenderAccountValue))
@@ -278,6 +269,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			panic(err)
 		}
 		receiver.Transactions = append(receiver.Transactions, transaction)
+		receiver.Amount = newReceiverAmount
 
 		jsonNewReceiverAccountValue, _ := json.Marshal(receiver)
 		invokeArgs = util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonNewReceiverAccountValue))
