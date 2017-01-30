@@ -8,9 +8,9 @@ import (
 	b64 "encoding/base64"
 	"regexp"
 	"encoding/json"
-	//"github.com/hyperledger/fabric/core/util"
-	//"math/big"
-	//"time"
+	"github.com/hyperledger/fabric/core/util"
+	"math/big"
+	"time"
 )
 
 const KVS_HANLDER_KEY = "KVS_HANDLER_KEY"
@@ -121,146 +121,136 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			Account: getCredAccount(mtMessage),
 		}
 
-		test, _ := json.Marshal(senderAccountKey)
-		test, _ = json.Marshal(receiverAccountKey)
-		test, _ = json.Marshal(senderOrganization)
+		receiverOrganization := Organization {
+			BIC: getIntermediaryBIC(mtMessage),
+			Account: getBenAccount(mtMessage),
+		}
 
 
-		strings.Replace(token, "","",-1)
-		strings.Replace(mapId, "","",-1)
+		transaction := &Transaction {
+			TransactionId: stub.GetTxID(),
+			Sender: senderOrganization,
+			Receiver:  receiverOrganization,
+			SenderAccountKey: senderAccountKey,
+			ReceiverAccountKey: receiverAccountKey,
+			Fee: getTransferFee(mtMessage),
+			Amount: getTransferAmount(mtMessage),
+			TransactionDetails: Details { InputMessage: mtMessage },
+		}
 
+		test, _ := json.Marshal(transaction)
 		return nil, errors.New("RESULT: " + string(test));
 
-		//receiverOrganization := Organization {
-		//	BIC: getIntermediaryBIC(mtMessage),
-		//	Account: getBenAccount(mtMessage),
-		//}
+		// Validate transaction
+		transaction.Status = "Success"
 
-		//
-		//transaction := &Transaction {
-		//	TransactionId: stub.GetTxID(),
-		//	Sender: senderOrganization,
-		//	Receiver:  receiverOrganization,
-		//	SenderAccountKey: senderAccountKey,
-		//	ReceiverAccountKey: receiverAccountKey,
-		//	Fee: getTransferFee(mtMessage),
-		//	Amount: getTransferAmount(mtMessage),
-		//	TransactionDetails: Details { InputMessage: mtMessage },
-		//}
-		//
-		//test, _ := json.Marshal(transaction)
-		//return nil, errors.New("RESULT: " + string(test));
-		//
-		//// Validate transaction
-		//transaction.Status = "Success"
-		//
-		//var account AccountValue
-		//jsonSenderAccountKey, _ := json.Marshal(transaction.SenderAccountKey)
-		//queryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
-		//queryResult, _ := stub.QueryChaincode(mapId, queryArgs)
-		//if err := json.Unmarshal(queryResult, &account); err != nil {
-		//	transaction.Status = "Failure"
-		//	transaction.Comment = "Unable to get sender account from the KVS"
-		//}
-		//
-		//jsonUserKey, _ := b64.StdEncoding.DecodeString(token)
-		//queryArgs = util.ToChaincodeArgs("function", string(jsonUserKey))
-		//queryResult, _ = stub.QueryChaincode(mapId, queryArgs)
-		//var userDetails UserDetails
-		//if err := json.Unmarshal(queryResult, &userDetails); err != nil {
-		//	transaction.Status = "Failure"
-		//	transaction.Comment = "Unable to get user by the token"
-		//}
-		//var allowTransfer bool
-		//for i := 0; i < len(userDetails.Permissions); i ++ {
-		//	if userDetails.Permissions[i].Key.Currency == transaction.SenderAccountKey.Currency &&
-		//	   userDetails.Permissions[i].Key.Holder == transaction.SenderAccountKey.HolderBIC &&
-		//	   userDetails.Permissions[i].Key.Owner == transaction.SenderAccountKey.OwnerBIC &&
-		//	   userDetails.Permissions[i].Key.AccountType == transaction.SenderAccountKey.Type {
-		//		allowTransfer = true
-		//	}
-		//}
-		//if !allowTransfer {
-		//	transaction.Status = "Failure"
-		//	transaction.Comment = "User doesn't have the permission for the action"
-		//}
-		//currentAmount := new(big.Rat)
-		//currentAmount.SetString(account.Amount)
-		//fee := new(big.Rat)
-		//fee.SetString(transaction.Fee)
-		//transferableAmount := new(big.Rat)
-		//transferableAmount.SetString(transaction.Amount)
-		//subtotal := new(big.Rat).Sub(currentAmount, transferableAmount)
-		//subtotal.Sub(subtotal, fee)
-		//if (subtotal.Sign() == -1) {
-		//	transaction.Status = "Failure"
-		//	transaction.Comment = "Unable to transfer the requested amount"
-		//}
-		//
-		//// Prepare output message
-		//newAmount := new(big.Rat).Sub(transferableAmount, fee)
-		//var outputMessage string
-		//if (transaction.Status == "Success") {
-		//	outputMessage := mtMessage
-		//	outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
-		//	outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
-		//	outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
-		//	outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
-		//	outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
-		//} else {
-		//	outputMessage := MT199_TEMPLATE
-		//	outputMessage = strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
-		//	outputMessage = strings.Replace(outputMessage, "[[RECEIVER]]", getSender(mtMessage), -1)
-		//	outputMessage = strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
-		//	outputMessage = strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
-		//}
-		//transaction.TransactionDetails.OutputMessage = outputMessage
-		//transaction.Time = time.Now().UTC().Format(time.RFC3339)
-		//
-		//if (transaction.Status == "Success") {
-		//	var sender AccountValue
-		//	jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
-		//	senderQueryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
-		//	queryResult, _ = stub.QueryChaincode(mapId, senderQueryArgs)
-		//	if err := json.Unmarshal(queryResult, &sender); err != nil {
-		//		panic(err)
-		//	}
-		//	var receiver AccountValue
-		//	jsonReceiverAccountKey, _ := json.Marshal(transaction.ReceiverAccountKey)
-		//	receiverQueryArgs := util.ToChaincodeArgs("function", string(jsonReceiverAccountKey))
-		//	queryResult, _ = stub.QueryChaincode(mapId, receiverQueryArgs)
-		//	if err := json.Unmarshal(queryResult, &receiver); err != nil {
-		//		panic(err)
-		//	}
-		//	currentAmount := new(big.Rat)
-		//	currentAmount.SetString(sender.Amount)
-		//	fee := new(big.Rat)
-		//	fee.SetString(transaction.Fee)
-		//	transferableAmount := new(big.Rat)
-		//	transferableAmount.SetString(transaction.Amount)
-		//	receiverAmount := new(big.Rat)
-		//	receiverAmount.SetString(receiver.Amount)
-		//
-		//	currentAmount.Sub(currentAmount, transferableAmount).Sub(currentAmount, fee)
-		//	receiverAmount.Add(receiverAmount, transferableAmount)
-		//
-		//	sender.Amount = currentAmount.String()
-		//	receiver.Amount = receiverAmount.String()
-		//
-		//	jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
-		//	jsonSender, _ := json.Marshal(sender)
-		//	senderInvokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonSender))
-		//	stub.InvokeChaincode(mapId, senderInvokeArgs)
-		//
-		//	jsonReceiverAccountKey, _ = json.Marshal(transaction.ReceiverAccountKey)
-		//	jsonReceiver, _ := json.Marshal(receiver)
-		//	receiverInvokeArgs := util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonReceiver))
-		//	stub.InvokeChaincode(mapId, receiverInvokeArgs)
-		//}
-		//
-		//jsonTransaction, _ := json.Marshal(transaction)
-		//invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
-		//stub.InvokeChaincode(mapId, invokeArgs)
+		var account AccountValue
+		jsonSenderAccountKey, _ := json.Marshal(transaction.SenderAccountKey)
+		queryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
+		queryResult, _ := stub.QueryChaincode(mapId, queryArgs)
+		if err := json.Unmarshal(queryResult, &account); err != nil {
+			transaction.Status = "Failure"
+			transaction.Comment = "Unable to get sender account from the KVS"
+		}
+
+		jsonUserKey, _ := b64.StdEncoding.DecodeString(token)
+		queryArgs = util.ToChaincodeArgs("function", string(jsonUserKey))
+		queryResult, _ = stub.QueryChaincode(mapId, queryArgs)
+		var userDetails UserDetails
+		if err := json.Unmarshal(queryResult, &userDetails); err != nil {
+			transaction.Status = "Failure"
+			transaction.Comment = "Unable to get user by the token"
+		}
+		var allowTransfer bool
+		for i := 0; i < len(userDetails.Permissions); i ++ {
+			if userDetails.Permissions[i].Key.Currency == transaction.SenderAccountKey.Currency &&
+			   userDetails.Permissions[i].Key.Holder == transaction.SenderAccountKey.HolderBIC &&
+			   userDetails.Permissions[i].Key.Owner == transaction.SenderAccountKey.OwnerBIC &&
+			   userDetails.Permissions[i].Key.AccountType == transaction.SenderAccountKey.Type {
+				allowTransfer = true
+			}
+		}
+		if !allowTransfer {
+			transaction.Status = "Failure"
+			transaction.Comment = "User doesn't have the permission for the action"
+		}
+		currentAmount := new(big.Rat)
+		currentAmount.SetString(account.Amount)
+		fee := new(big.Rat)
+		fee.SetString(transaction.Fee)
+		transferableAmount := new(big.Rat)
+		transferableAmount.SetString(transaction.Amount)
+		subtotal := new(big.Rat).Sub(currentAmount, transferableAmount)
+		subtotal.Sub(subtotal, fee)
+		if (subtotal.Sign() == -1) {
+			transaction.Status = "Failure"
+			transaction.Comment = "Unable to transfer the requested amount"
+		}
+
+		// Prepare output message
+		newAmount := new(big.Rat).Sub(transferableAmount, fee)
+		var outputMessage string
+		if (transaction.Status == "Success") {
+			outputMessage := mtMessage
+			outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
+			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
+		} else {
+			outputMessage := MT199_TEMPLATE
+			outputMessage = strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, "[[RECEIVER]]", getSender(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
+			outputMessage = strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
+		}
+		transaction.TransactionDetails.OutputMessage = outputMessage
+		transaction.Time = time.Now().UTC().Format(time.RFC3339)
+
+		if (transaction.Status == "Success") {
+			var sender AccountValue
+			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
+			senderQueryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
+			queryResult, _ = stub.QueryChaincode(mapId, senderQueryArgs)
+			if err := json.Unmarshal(queryResult, &sender); err != nil {
+				panic(err)
+			}
+			var receiver AccountValue
+			jsonReceiverAccountKey, _ := json.Marshal(transaction.ReceiverAccountKey)
+			receiverQueryArgs := util.ToChaincodeArgs("function", string(jsonReceiverAccountKey))
+			queryResult, _ = stub.QueryChaincode(mapId, receiverQueryArgs)
+			if err := json.Unmarshal(queryResult, &receiver); err != nil {
+				panic(err)
+			}
+			currentAmount := new(big.Rat)
+			currentAmount.SetString(sender.Amount)
+			fee := new(big.Rat)
+			fee.SetString(transaction.Fee)
+			transferableAmount := new(big.Rat)
+			transferableAmount.SetString(transaction.Amount)
+			receiverAmount := new(big.Rat)
+			receiverAmount.SetString(receiver.Amount)
+
+			currentAmount.Sub(currentAmount, transferableAmount).Sub(currentAmount, fee)
+			receiverAmount.Add(receiverAmount, transferableAmount)
+
+			sender.Amount = currentAmount.String()
+			receiver.Amount = receiverAmount.String()
+
+			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
+			jsonSender, _ := json.Marshal(sender)
+			senderInvokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonSender))
+			stub.InvokeChaincode(mapId, senderInvokeArgs)
+
+			jsonReceiverAccountKey, _ = json.Marshal(transaction.ReceiverAccountKey)
+			jsonReceiver, _ := json.Marshal(receiver)
+			receiverInvokeArgs := util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonReceiver))
+			stub.InvokeChaincode(mapId, receiverInvokeArgs)
+		}
+
+		jsonTransaction, _ := json.Marshal(transaction)
+		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
+		stub.InvokeChaincode(mapId, invokeArgs)
 
 		return nil, nil
 	default:
@@ -298,7 +288,6 @@ func getTag(block4 string, tagName string) string {
 	tag := r.FindString(block4)
 	tag = strings.Replace(tag, ":" + tagName + ":", "", -1)
 	tag = strings.Replace(tag, "\r", "", -1)
-	tag = strings.Replace(tag, "\n", "", -1)
 	tag = strings.TrimSuffix(tag, ":")
 
 	return tag
@@ -360,8 +349,8 @@ func getCredAccount(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
 	if block4 != "" {
 		tag := getTag(block4, "50K")
-		//account := tag[1:strings.Index(tag, "\n")]
-		return tag;
+		account := tag[1:strings.Index(tag, "\n")]
+		return account;
 	}
 	return ""
 }
