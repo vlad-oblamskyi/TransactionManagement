@@ -102,26 +102,26 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		mtMessage := string(byteMtMessage)
 
 		// Parse MT Message
-		senderAccountKey := AccountKey {
+		senderAccountKey := &AccountKey {
 			HolderBIC: getIntermediaryBIC(mtMessage),
 			OwnerBIC: getSender(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
 			Type: "nostro",
 		}
 
-		receiverAccountKey := AccountKey {
+		receiverAccountKey := &AccountKey {
 			HolderBIC: getIntermediaryBIC(mtMessage),
 			OwnerBIC: getReceiver(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
 			Type: "vostro",
 		}
 
-		senderOrganization := Organization {
+		senderOrganization := &Organization {
 			BIC: getSender(mtMessage),
 			Account: getCredAccount(mtMessage),
 		}
 
-		receiverOrganization := Organization {
+		receiverOrganization := &Organization {
 			BIC: getIntermediaryBIC(mtMessage),
 			Account: getBenAccount(mtMessage),
 		}
