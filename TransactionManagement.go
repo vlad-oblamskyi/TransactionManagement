@@ -212,6 +212,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		transaction.Time = time.Now().UTC().Format(time.RFC3339)
 
 		if (transaction.Status == "Success") {
+			state, _ = stub.GetState(KVS_HANLDER_KEY)
+			mapId = string(state);
 			var sender AccountValue
 			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
 			senderQueryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
@@ -239,13 +241,12 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			currentAmount.Sub(currentAmount, fee)
 			receiverAmount.Add(receiverAmount, transferableAmount)
 
-			sender.Amount = currentAmount.String()
-			receiver.Amount = receiverAmount.String()
+			sender.Amount = currentAmount.FloatString(2)
+			receiver.Amount = receiverAmount.FloatString(2)
 
 			jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
 			jsonSender, _ := json.Marshal(sender)
 
-			return nil, errors.New("RESULT: " + string(jsonSenderAccountKey) + "; " + string(jsonSender))
 			senderInvokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonSender))
 			stub.InvokeChaincode(mapId, senderInvokeArgs)
 
