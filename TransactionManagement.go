@@ -292,14 +292,15 @@ func getTag(block4 string, tagName string) string {
 
 func getReceiver(mtMessage string) string {
 	block2 := getBlock(mtMessage, 2)
-	if block2 != "" {
-		if (len(block2) == 17 || len(block2) == 21) {
-			return block2[4:12]
-		} else if len(block2) == 47 {
-			return block2[14:22]
-		}
-	}
-	return ""
+	return block2
+	//if block2 != "" {
+	//	if (len(block2) == 17 || len(block2) == 21) {
+	//		return block2[4:12]
+	//	} else if len(block2) == 47 {
+	//		return block2[14:22]
+	//	}
+	//}
+	//return ""
 }
 
 func getSender(mtMessage string) string {
