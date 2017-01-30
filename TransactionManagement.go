@@ -184,6 +184,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			transaction.Status = "Failure"
 			transaction.Comment = "Unable to transfer the requested amount"
 		}
+		test, _ := json.Marshal(account)
+		return nil, errors.New("RESULT: " +  string(test) + "; " + subtotal);
+
 
 		// Prepare output message
 		newAmount := new(big.Rat).Sub(transferableAmount, fee)
