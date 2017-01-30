@@ -255,7 +255,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			panic(err)
 		}
 		sender.Transactions = append(sender.Transactions, transaction)
-		sender.Amount = newSenderAmount
+		if (newSenderAmount != "") {
+			sender.Amount = newSenderAmount
+		}
 
 		jsonNewSenderAccountValue, _ := json.Marshal(sender)
 		invokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonNewSenderAccountValue))
@@ -269,13 +271,16 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			panic(err)
 		}
 		receiver.Transactions = append(receiver.Transactions, transaction)
-		receiver.Amount = newReceiverAmount
+		if (newReceiverAmount != "") {
+			receiver.Amount = newReceiverAmount
+		}
 
 		jsonNewReceiverAccountValue, _ := json.Marshal(receiver)
 		invokeArgs = util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonNewReceiverAccountValue))
 		stub.InvokeChaincode(mapId, invokeArgs)
 
-		return nil, nil
+		result := "Transaction status: " + transaction.Status + "; Comment: " + transaction.Comment
+		return []byte(result), nil
 	default:
 		return nil, errors.New("Unsupported operation")
 	}
