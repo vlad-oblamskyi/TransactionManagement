@@ -129,7 +129,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		}
 
 
-		transaction := &Transaction {
+		transaction := Transaction {
 			TransactionId: stub.GetTxID(),
 			Sender: senderOrganization,
 			Receiver:  receiverOrganization,
