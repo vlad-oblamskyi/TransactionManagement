@@ -160,7 +160,10 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		}
 		var allowTransfer bool
 		for i := 0; i < len(userDetails.Permissions); i ++ {
-			if userDetails.Permissions[i].Key == transaction.SenderAccountKey{
+			if userDetails.Permissions[i].Key.Currency == transaction.SenderAccountKey.Currency &&
+			   userDetails.Permissions[i].Key.Holder == transaction.SenderAccountKey.HolderBIC &&
+			   userDetails.Permissions[i].Key.Owner == transaction.SenderAccountKey.OwnerBIC &&
+			   userDetails.Permissions[i].Key.AccountType == transaction.SenderAccountKey.Type {
 				allowTransfer = true
 			}
 		}
@@ -294,7 +297,7 @@ func getTag(block4 string, tagName string) string {
 
 func getReceiver(mtMessage string) string {
 	block2 := getBlock(mtMessage, 2)
-	if block2 != nil {
+	if block2 != "" {
 		switch (len(block2)) {
 		case 17:
 		case 21:
@@ -308,7 +311,7 @@ func getReceiver(mtMessage string) string {
 
 func getSender(mtMessage string) string {
 	block1 := getBlock(mtMessage, 1)
-	if block1 != nil {
+	if block1 != "" {
 		return block1[3:11]
 	}
 	return nil
@@ -316,7 +319,7 @@ func getSender(mtMessage string) string {
 
 func getTransferAmount(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "32A")
 		amount := tag[9:]
 		strings.Replace(amount, ",", ".", -1)
@@ -327,7 +330,7 @@ func getTransferAmount(mtMessage string) string {
 
 func getTransferCurrency(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "32A")
 		currency := tag[6:9]
 		return currency;
@@ -337,7 +340,7 @@ func getTransferCurrency(mtMessage string) string {
 
 func getTransferFee(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "71G")
 		amount := tag[3:]
 		strings.Replace(amount, ",", ".", -1)
@@ -348,7 +351,7 @@ func getTransferFee(mtMessage string) string {
 
 func getCredAccount(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "50K")
 		account := tag[1:strings.Index(tag, "\n")]
 		return account;
@@ -358,7 +361,7 @@ func getCredAccount(mtMessage string) string {
 
 func getBenAccount(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "59A")
 		account := tag[1:strings.Index(tag, "\n")]
 		return account;
@@ -368,7 +371,7 @@ func getBenAccount(mtMessage string) string {
 
 func getIntermediaryBIC(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
-	if block4 != nil {
+	if block4 != "" {
 		tag := getTag(block4, "57A")
 		return tag;
 	}
