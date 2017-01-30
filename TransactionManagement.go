@@ -306,7 +306,7 @@ func getReceiver(mtMessage string) string {
 			return block2[14:22]
 		}
 	}
-	return nil
+	return ""
 }
 
 func getSender(mtMessage string) string {
@@ -314,7 +314,7 @@ func getSender(mtMessage string) string {
 	if block1 != "" {
 		return block1[3:11]
 	}
-	return nil
+	return ""
 }
 
 func getTransferAmount(mtMessage string) string {
@@ -325,7 +325,7 @@ func getTransferAmount(mtMessage string) string {
 		strings.Replace(amount, ",", ".", -1)
 		return amount;
 	}
-	return nil
+	return ""
 }
 
 func getTransferCurrency(mtMessage string) string {
@@ -335,7 +335,7 @@ func getTransferCurrency(mtMessage string) string {
 		currency := tag[6:9]
 		return currency;
 	}
-	return nil
+	return ""
 }
 
 func getTransferFee(mtMessage string) string {
@@ -346,7 +346,7 @@ func getTransferFee(mtMessage string) string {
 		strings.Replace(amount, ",", ".", -1)
 		return amount;
 	}
-	return nil
+	return ""
 }
 
 func getCredAccount(mtMessage string) string {
@@ -356,7 +356,7 @@ func getCredAccount(mtMessage string) string {
 		account := tag[1:strings.Index(tag, "\n")]
 		return account;
 	}
-	return nil
+	return ""
 }
 
 func getBenAccount(mtMessage string) string {
@@ -366,7 +366,7 @@ func getBenAccount(mtMessage string) string {
 		account := tag[1:strings.Index(tag, "\n")]
 		return account;
 	}
-	return nil
+	return ""
 }
 
 func getIntermediaryBIC(mtMessage string) string {
@@ -375,7 +375,7 @@ func getIntermediaryBIC(mtMessage string) string {
 		tag := getTag(block4, "57A")
 		return tag;
 	}
-	return nil
+	return ""
 }
 
 func main() {
