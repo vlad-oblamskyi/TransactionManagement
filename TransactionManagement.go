@@ -189,17 +189,17 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		var outputMessage string
 		if (transaction.Status == "Success") {
 			outputMessage := mtMessage
-			strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
-			strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
-			strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
-			strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
-			strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
+			outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
+			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
 		} else {
 			outputMessage := MT199_TEMPLATE
-			strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
-			strings.Replace(outputMessage, "[[RECEIVER]]", getSender(mtMessage), -1)
-			strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
-			strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
+			outputMessage = strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, "[[RECEIVER]]", getSender(mtMessage), -1)
+			outputMessage = strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
+			outputMessage = strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
 		}
 		transaction.TransactionDetails.OutputMessage = outputMessage
 		transaction.Time = time.Now().UTC().Format(time.RFC3339)
@@ -266,34 +266,30 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 }
 
 func getBlock(mtMessage string, blockNumber int) string {
-	switch(blockNumber) {
-	case 1:
-	case 2:
-	case 3:
+	if blockNumber != 4 {
 		r, _ := regexp.Compile("{" + string(blockNumber) + ":(.*?)}");
 		block := r.FindString(mtMessage)
-		strings.Replace(block, "{" + string(blockNumber) + ":", "", -1)
-		strings.Replace(block, "}", "", -1)
+		block = strings.Replace(block, "{" + string(blockNumber) + ":", "", -1)
+		block = strings.Replace(block, "}", "", -1)
 
 		return block
-	case 4:
+	} else {
 		r, _ := regexp.Compile("{4:(\\s*.*)+-}");
 		block := r.FindString(mtMessage)
-		strings.Replace(block, "{4:", "", -1)
-		strings.Replace(block, "-}", "", -1)
+		block = strings.Replace(block, "{4:", "", -1)
+		block = strings.Replace(block, "-}", "", -1)
 
 		return block
-	default:
-		return ""
 	}
-	return ""
 }
 
 func getTag(block4 string, tagName string) string {
 	r, _ := regexp.Compile(":" + tagName + ":(\\s*.*)+?(\\s:|$)");
 	tag := r.FindString(block4)
-	strings.Replace(tag, ":" + tagName + ":", "", -1)
-	strings.TrimSuffix(tag, ":")
+	tag = strings.Replace(tag, ":" + tagName + ":", "", -1)
+	tag = strings.Replace(tag, "\r", "", -1)
+	tag = strings.Replace(tag, "\n", "", -1)
+	tag = strings.TrimSuffix(tag, ":")
 
 	return tag
 }
@@ -301,11 +297,9 @@ func getTag(block4 string, tagName string) string {
 func getReceiver(mtMessage string) string {
 	block2 := getBlock(mtMessage, 2)
 	if block2 != "" {
-		switch (len(block2)) {
-		case 17:
-		case 21:
+		if (len(block2) == 17 || len(block2) == 21) {
 			return block2[4:12]
-		case 47:
+		} else if len(block2) == 47 {
 			return block2[14:22]
 		}
 	}
@@ -325,7 +319,7 @@ func getTransferAmount(mtMessage string) string {
 	if block4 != "" {
 		tag := getTag(block4, "32A")
 		amount := tag[9:]
-		strings.Replace(amount, ",", ".", -1)
+		amount = strings.Replace(amount, ",", ".", -1)
 		return amount;
 	}
 	return ""
@@ -346,7 +340,7 @@ func getTransferFee(mtMessage string) string {
 	if block4 != "" {
 		tag := getTag(block4, "71G")
 		amount := tag[3:]
-		strings.Replace(amount, ",", ".", -1)
+		amount = strings.Replace(amount, ",", ".", -1)
 		return amount;
 	}
 	return ""
