@@ -41,6 +41,7 @@ type AccountValue struct {
 	Type      string  `json:"type"`
 	Date      string  `json:"date"`
 	Number    string  `json:"number"`
+	Transactions []Transaction `json:"transactions"`
 }
 
 type Organization struct {
@@ -194,14 +195,14 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		newAmount := new(big.Rat).Sub(transferableAmount, fee)
 		var outputMessage string
 		if (transaction.Status == "Success") {
-			outputMessage := mtMessage
+			outputMessage = mtMessage
 			outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
 			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
 		} else {
-			outputMessage := MT199_TEMPLATE
+			outputMessage = MT199_TEMPLATE
 			outputMessage = strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, "[[RECEIVER]]", getSender(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
@@ -234,7 +235,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			receiverAmount := new(big.Rat)
 			receiverAmount.SetString(receiver.Amount)
 
-			currentAmount.Sub(currentAmount, transferableAmount).Sub(currentAmount, fee)
+			currentAmount.Sub(currentAmount, transferableAmount)
+			currentAmount.Sub(currentAmount, fee)
 			receiverAmount.Add(receiverAmount, transferableAmount)
 
 			sender.Amount = currentAmount.String()
@@ -251,12 +253,31 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			stub.InvokeChaincode(mapId, receiverInvokeArgs)
 		}
 
-		jsonTransaction, _ := json.Marshal(transaction)
-		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
+		var sender AccountValue
+		jsonSenderAccountKey, _ = json.Marshal(transaction.SenderAccountKey)
+		senderQueryArgs := util.ToChaincodeArgs("function", string(jsonSenderAccountKey))
+		queryResult, _ = stub.QueryChaincode(mapId, senderQueryArgs)
+		if err := json.Unmarshal(queryResult, &sender); err != nil {
+			panic(err)
+		}
+		sender.Transactions = append(sender.Transactions, transaction)
+
+		jsonNewSenderAccountValue, _ := json.Marshal(sender)
+		invokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonNewSenderAccountValue))
 		stub.InvokeChaincode(mapId, invokeArgs)
 
-		test, _ := json.Marshal(transaction)
-		return nil, errors.New("RESULT: " +  string(test));
+		var receiver AccountValue
+		jsonReceiverAccountKey, _ := json.Marshal(transaction.ReceiverAccountKey)
+		receiverQueryArgs := util.ToChaincodeArgs("function", string(jsonReceiverAccountKey))
+		queryResult, _ = stub.QueryChaincode(mapId, receiverQueryArgs)
+		if err := json.Unmarshal(queryResult, &receiver); err != nil {
+			panic(err)
+		}
+		receiver.Transactions = append(receiver.Transactions, transaction)
+
+		jsonNewReceiverAccountValue, _ := json.Marshal(receiver)
+		invokeArgs = util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonNewReceiverAccountValue))
+		stub.InvokeChaincode(mapId, invokeArgs)
 
 		return nil, nil
 	default:
