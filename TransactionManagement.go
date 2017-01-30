@@ -185,7 +185,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			transaction.Comment = "Unable to transfer the requested amount"
 		}
 		test, _ := json.Marshal(account)
-		return nil, errors.New("RESULT: " +  string(test) + "; " + subtotal);
+		return nil, errors.New("RESULT: " +  string(test));
 
 
 		// Prepare output message
@@ -252,9 +252,9 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		jsonTransaction, _ := json.Marshal(transaction)
 		invokeArgs := util.ToChaincodeArgs("put", transaction.TransactionId, string(jsonTransaction))
 		stub.InvokeChaincode(mapId, invokeArgs)
-
-		test, _ := json.Marshal(transaction)
-		return nil, errors.New("RESULT: " +  string(test));
+		//
+		//test, _ := json.Marshal(transaction)
+		//return nil, errors.New("RESULT: " +  string(test));
 
 		return nil, nil
 	default:
