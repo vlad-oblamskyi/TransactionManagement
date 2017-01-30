@@ -138,8 +138,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			TransactionDetails: Details { InputMessage: mtMessage },
 		}
 
-		//test, _ := json.Marshal(transaction)
-		return nil, errors.New("RESULT: " +  getBlock(mtMessage, 1));
+		test, _ := json.Marshal(transaction)
+		return nil, errors.New("RESULT: " +  string(test));
 
 		// Validate transaction
 		transaction.Status = "Success"
@@ -316,6 +316,7 @@ func getTransferAmount(mtMessage string) string {
 		tag := getTag(block4, "32A")
 		amount := tag[9:]
 		amount = strings.Replace(amount, ",", ".", -1)
+		amount = strings.Replace(amount, "\n", "", -1)
 		return amount;
 	}
 	return ""
@@ -337,6 +338,7 @@ func getTransferFee(mtMessage string) string {
 		tag := getTag(block4, "71G")
 		amount := tag[3:]
 		amount = strings.Replace(amount, ",", ".", -1)
+		amount = strings.Replace(amount, "\n", "", -1)
 		return amount;
 	}
 	return ""
@@ -366,7 +368,7 @@ func getIntermediaryBIC(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
 	if block4 != "" {
 		tag := getTag(block4, "57A")
-		return tag;
+		return strings.Replace(tag, "\n", "", -1)
 	}
 	return ""
 }
