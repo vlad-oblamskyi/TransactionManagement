@@ -360,9 +360,8 @@ func getCredAccount(mtMessage string) string {
 	block4 := getBlock(mtMessage, 4)
 	if block4 != "" {
 		tag := getTag(block4, "50K")
-		return nil, errors.New("RESULT: " + tag);
-		account := tag[1:strings.Index(tag, "\n")]
-		return account;
+		//account := tag[1:strings.Index(tag, "\n")]
+		return tag;
 	}
 	return ""
 }
