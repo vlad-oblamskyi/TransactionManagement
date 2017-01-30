@@ -138,8 +138,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			TransactionDetails: Details { InputMessage: mtMessage },
 		}
 
-		test, _ := json.Marshal(transaction)
-		return nil, errors.New("RESULT: " + string(test));
+		//test, _ := json.Marshal(transaction)
+		return nil, errors.New("RESULT: " +  getBlock(mtMessage, 1));
 
 		// Validate transaction
 		transaction.Status = "Success"
