@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"strings"
-	//b64 "encoding/base64"
+	b64 "encoding/base64"
 	"regexp"
-	//"encoding/json"
+	"encoding/json"
 	//"github.com/hyperledger/fabric/core/util"
 	//"math/big"
 	//"time"
@@ -92,40 +92,50 @@ func (t *TransactionManagement) Init(stub shim.ChaincodeStubInterface, function 
 func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	switch function {
 	case "transfer":
-		//if len(args) != 2 {
-		//	return nil, errors.New("Incorrect number of arguments. 2 parameters are expected:  authToken, MT message");
-		//}
-		//token := args[0]
-		//state, _ := stub.GetState(KVS_HANLDER_KEY)
-		//mapId := string(state);
-		//byteMtMessage, _ := b64.StdEncoding.DecodeString(string(args[1]))
-		//mtMessage := string(byteMtMessage)
-		//
-		//// Parse MT Message
-		//senderAccountKey := AccountKey {
-		//	HolderBIC: getIntermediaryBIC(mtMessage),
-		//	OwnerBIC: getSender(mtMessage),
-		//	Currency: getTransferCurrency(mtMessage),
-		//	Type: "nostro",
-		//}
-		//
-		//
-		//receiverAccountKey := AccountKey {
-		//	HolderBIC: getIntermediaryBIC(mtMessage),
-		//	OwnerBIC: getReceiver(mtMessage),
-		//	Currency: getTransferCurrency(mtMessage),
-		//	Type: "vostro",
-		//}
-		//
-		//senderOrganization := Organization {
-		//	BIC: getSender(mtMessage),
-		//	Account: getCredAccount(mtMessage),
-		//}
-		//
-		//receiverOrganization := Organization {
-		//	BIC: getIntermediaryBIC(mtMessage),
-		//	Account: getBenAccount(mtMessage),
-		//}
+		if len(args) != 2 {
+			return nil, errors.New("Incorrect number of arguments. 2 parameters are expected:  authToken, MT message");
+		}
+		token := args[0]
+		state, _ := stub.GetState(KVS_HANLDER_KEY)
+		mapId := string(state);
+		byteMtMessage, _ := b64.StdEncoding.DecodeString(string(args[1]))
+		mtMessage := string(byteMtMessage)
+
+		// Parse MT Message
+		senderAccountKey := AccountKey {
+			HolderBIC: getIntermediaryBIC(mtMessage),
+			OwnerBIC: getSender(mtMessage),
+			Currency: getTransferCurrency(mtMessage),
+			Type: "nostro",
+		}
+
+
+		receiverAccountKey := AccountKey {
+			HolderBIC: getIntermediaryBIC(mtMessage),
+			OwnerBIC: getReceiver(mtMessage),
+			Currency: getTransferCurrency(mtMessage),
+			Type: "vostro",
+		}
+
+		senderOrganization := Organization {
+			BIC: getSender(mtMessage),
+			Account: getCredAccount(mtMessage),
+		}
+
+		receiverOrganization := Organization {
+			BIC: getIntermediaryBIC(mtMessage),
+			Account: getBenAccount(mtMessage),
+		}
+		test, _ := json.Marshal(senderAccountKey)
+		test, _ = json.Marshal(receiverAccountKey)
+		test, _ = json.Marshal(receiverOrganization)
+		test, _ = json.Marshal(senderOrganization)
+		test, _ = json.Marshal(senderOrganization)
+
+		strings.Replace(token, "", "" , -1)
+		strings.Replace(mapId, "", "" , -1)
+
+		return nil, errors.New("RESULT: " +  + string(test));
 		//
 		//transaction := &Transaction {
 		//	TransactionId: stub.GetTxID(),
