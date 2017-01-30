@@ -135,7 +135,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		strings.Replace(token, "", "" , -1)
 		strings.Replace(mapId, "", "" , -1)
 
-		return nil, errors.New("RESULT: " +  + string(test));
+		return nil, errors.New("RESULT: " + string(test));
 		//
 		//transaction := &Transaction {
 		//	TransactionId: stub.GetTxID(),
