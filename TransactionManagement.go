@@ -102,7 +102,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		mtMessage := string(byteMtMessage)
 
 		// Parse MT Message
-		senderAccountKey := &AccountKey {
+		senderAccountKey := AccountKey {
 			HolderBIC: getIntermediaryBIC(mtMessage),
 			OwnerBIC: getSender(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
@@ -110,22 +110,32 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		}
 
 
-		receiverAccountKey := &AccountKey {
+		receiverAccountKey := AccountKey {
 			HolderBIC: getIntermediaryBIC(mtMessage),
 			OwnerBIC: getReceiver(mtMessage),
 			Currency: getTransferCurrency(mtMessage),
 			Type: "vostro",
 		}
 
+		senderOrganization := Organization {
+			BIC: getSender(mtMessage),
+			Account: getCredAccount(mtMessage),
+		}
+
+		receiverOrganization := Organization {
+			BIC: getIntermediaryBIC(mtMessage),
+			Account: getBenAccount(mtMessage),
+		}
+
 		transaction := &Transaction {
 			TransactionId: stub.GetTxID(),
-			Sender: &Organization { BIC: getSender(mtMessage), Account: getCredAccount(mtMessage)},
-			Receiver: &Organization { BIC: getIntermediaryBIC(mtMessage), Account: getBenAccount(mtMessage)},
+			Sender: senderOrganization,
+			Receiver: receiverOrganization,
 			SenderAccountKey: senderAccountKey,
 			ReceiverAccountKey: receiverAccountKey,
 			Fee: getTransferFee(mtMessage),
 			Amount: getTransferAmount(mtMessage),
-			TransactionDetails: &Details { InputMessage: mtMessage },
+			TransactionDetails: Details { InputMessage: mtMessage },
 		}
 
 		// Validate transaction
@@ -254,9 +264,9 @@ func getBlock(mtMessage string, blockNumber int) string {
 	case 1:
 	case 2:
 	case 3:
-		r, _ := regexp.Compile("{" + blockNumber + ":(.*?)}");
+		r, _ := regexp.Compile("{" + string(blockNumber) + ":(.*?)}");
 		block := r.FindString(mtMessage)
-		strings.Replace(block, "{" + blockNumber + ":", "", -1)
+		strings.Replace(block, "{" + string(blockNumber) + ":", "", -1)
 		strings.Replace(block, "}", "", -1)
 
 		return block
@@ -268,9 +278,9 @@ func getBlock(mtMessage string, blockNumber int) string {
 
 		return block
 	default:
-		return nil
+		return ""
 	}
-	return nil
+	return ""
 }
 
 func getTag(block4 string, tagName string) string {
