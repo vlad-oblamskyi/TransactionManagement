@@ -109,34 +109,29 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			Type: "nostro",
 		}
 
-
-		receiverAccountKey := AccountKey {
-			HolderBIC: getIntermediaryBIC(mtMessage),
-			OwnerBIC: getReceiver(mtMessage),
-			Currency: getTransferCurrency(mtMessage),
-			Type: "vostro",
-		}
-
-		senderOrganization := Organization {
-			BIC: getSender(mtMessage),
-			Account: getCredAccount(mtMessage),
-		}
-
-		receiverOrganization := Organization {
-			BIC: getIntermediaryBIC(mtMessage),
-			Account: getBenAccount(mtMessage),
-		}
 		test, _ := json.Marshal(senderAccountKey)
-		test, _ = json.Marshal(receiverAccountKey)
-		test, _ = json.Marshal(receiverOrganization)
-		test, _ = json.Marshal(senderOrganization)
-		test, _ = json.Marshal(senderOrganization)
-
-		strings.Replace(token, "", "" , -1)
-		strings.Replace(mapId, "", "" , -1)
+		strings.Replace(token, "","",-1)
+		strings.Replace(mapId, "","",-1)
 
 		return nil, errors.New("RESULT: " + string(test));
+
+		//receiverAccountKey := AccountKey {
+		//	HolderBIC: getIntermediaryBIC(mtMessage),
+		//	OwnerBIC: getReceiver(mtMessage),
+		//	Currency: getTransferCurrency(mtMessage),
+		//	Type: "vostro",
+		//}
 		//
+		//senderOrganization := Organization {
+		//	BIC: getSender(mtMessage),
+		//	Account: getCredAccount(mtMessage),
+		//}
+		//
+		//receiverOrganization := Organization {
+		//	BIC: getIntermediaryBIC(mtMessage),
+		//	Account: getBenAccount(mtMessage),
+		//}
+		////
 		//transaction := &Transaction {
 		//	TransactionId: stub.GetTxID(),
 		//	Sender: senderOrganization,
