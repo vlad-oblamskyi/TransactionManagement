@@ -230,7 +230,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
-			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
+			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) + "\r\n" , "", -1)
 			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.FloatString(2), ".", ",", -1), -1)
 		} else {
 			outputMessage = MT199_TEMPLATE
@@ -385,6 +385,13 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 		}
 		jsonTransactionsView, _ := json.Marshal(transactionsView)
 		return jsonTransactionsView, nil
+	case "checkPermissions":
+		if len(args) != 2 {
+			return nil, errors.New("Incorrect number of arguments. 2 parameters are expected:  authToken, msg");
+		}
+		// stub
+		result := "{\"status\":\"OK\"}"
+		return []byte(result), nil
 	default:
 		return nil, errors.New("Unsupported operation")
 	}
