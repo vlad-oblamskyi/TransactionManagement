@@ -168,7 +168,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			ReceiverAccountKey: receiverAccountKey,
 			Fee: getTransferFee(mtMessage),
 			Amount: getTransferAmount(mtMessage),
-			TransactionDetails: Details { InputMessage: mtMessage },
+			TransactionDetails: Details { InputMessage: b64.StdEncoding.EncodeToString(byteMtMessage) },
 		}
 
 		// Validate transaction
@@ -239,7 +239,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			outputMessage = strings.Replace(outputMessage, "[[TX-ID]]", transaction.TransactionId, -1)
 			outputMessage = strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
 		}
-		transaction.TransactionDetails.OutputMessage = outputMessage
+
+		transaction.TransactionDetails.OutputMessage = b64.StdEncoding.EncodeToString([]byte(outputMessage))
 		transaction.Time = time.Now().UTC().Format(time.RFC3339)
 
 		var newSenderAmount string
@@ -485,3 +486,5 @@ func main() {
 		fmt.Printf("Error starting chaincode: %s", err)
 	}
 }
+
+
