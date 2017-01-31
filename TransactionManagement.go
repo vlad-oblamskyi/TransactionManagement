@@ -63,6 +63,37 @@ type Transaction struct {
 	Time string                     `json:"time"`
 }
 
+type AccountState struct {
+	Amount string      `json:"amount"`
+	Currency string    `json:"currency"`
+}
+
+type TransactionStatus struct {
+	Status string      `json:"status"`
+	Comment string     `json:"comment"`
+}
+
+type Transfer struct {
+	Sender Organization    `json:"sender"`
+	Receiver Organization  `json:"receiver"`
+	Amount string          `json:"amount"`
+	Currency string        `json:"currency"`
+}
+
+type TransactionView struct {
+	Id string                 `json:"id"`
+	Trans Transfer            `json:"transfer"`
+	Time string               `json:"time"`
+	Status TransactionStatus  `json:"transactionStatus"`
+	AccState AccountState     `json:"accountState"`
+	Dets Details              `json:"details"`
+}
+
+type TransactionsView struct {
+	AccState AccountState   `json:"accountState"`
+	Transactions []TransactionView   `json:"transactions"`
+}
+
 type PermissionAccountKey struct {
 	Type         string  `json:"type"`
 	Holder       string  `json:"holder"`
@@ -288,6 +319,53 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 
 func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	switch function {
+	case "listTransactions":
+		if len(args) != 2 {
+			return nil, errors.New("Incorrect number of arguments. 2 parameters are expected:  authToken, accountId");
+		}
+		state, _ := stub.GetState(KVS_HANLDER_KEY)
+		mapId := string(state);
+		byteJsonAccountKey, _ := b64.StdEncoding.DecodeString(string(args[1]))
+		jsonAccountKey := string(byteJsonAccountKey)
+		invokeArgs := util.ToChaincodeArgs("function", string(jsonAccountKey))
+		account, _ := stub.QueryChaincode(mapId, invokeArgs)
+		var accountValue AccountValue
+		if err := json.Unmarshal(account, &accountValue); err != nil {
+			panic(err)
+		}
+
+		transactionViews := make([]TransactionView, 0)
+		for i := 0; i < len(accountValue.Transactions); i++ {
+			transaction := accountValue.Transactions[i]
+			transactionView := TransactionView {
+				Id: transaction.TransactionId,
+				Trans: Transfer {
+					Sender: transaction.Sender,
+					Receiver: transaction.Receiver,
+					Amount: transaction.Amount,
+					Currency: transaction.SenderAccountKey.Currency,
+				},
+				Time: transaction.Time,
+				Status: TransactionStatus {
+					Status: transaction.Status,
+					Comment: transaction.Comment,
+				},
+				AccState: AccountState {
+					Currency: accountValue.Currency,
+					Amount: accountValue.Amount,
+				},
+				Dets: transaction.TransactionDetails,
+			}
+			transactionViews = append(transactionViews, transactionView)
+		}
+
+
+		transactionsView := &TransactionsView {
+			AccState: AccountState { Currency: accountValue.Currency, Amount: accountValue.Amount },
+			Transactions: transactionViews,
+		}
+		jsonTransactionsView, _ := json.Marshal(transactionsView)
+		return jsonTransactionsView, nil
 	default:
 		return nil, errors.New("Unsupported operation")
 	}
