@@ -338,6 +338,21 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 		transactionViews := make([]TransactionView, 0)
 		for i := 0; i < len(accountValue.Transactions); i++ {
 			transaction := accountValue.Transactions[i]
+
+			// Temporary hack
+			var inputMessage string
+			if isBase64(transaction.TransactionDetails.InputMessage) {
+				inputMessage = transaction.TransactionDetails.InputMessage
+			} else {
+				inputMessage = b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.InputMessage))
+			}
+			var outputMessage string
+			if isBase64(transaction.TransactionDetails.OutputMessage) {
+				outputMessage = transaction.TransactionDetails.OutputMessage
+			} else {
+				outputMessage = b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.OutputMessage))
+			}
+
 			transactionView := TransactionView {
 				Id: transaction.TransactionId,
 				Trans: Transfer {
@@ -356,8 +371,8 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 					Amount: accountValue.Amount,
 				},
 				Dets: Details {
-					InputMessage: b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.InputMessage)),
-					OutputMessage: b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.OutputMessage)),
+					InputMessage: inputMessage,
+					OutputMessage: outputMessage,
 				},
 			}
 			transactionViews = append(transactionViews, transactionView)
@@ -481,6 +496,11 @@ func getIntermediaryBIC(mtMessage string) string {
 		return strings.Replace(tag, "\n", "", -1)
 	}
 	return ""
+}
+
+func isBase64(s string) bool {
+	_, err := b64.StdEncoding.DecodeString(s)
+	return err == nil
 }
 
 func main() {
