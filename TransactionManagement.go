@@ -61,6 +61,7 @@ type Transaction struct {
 	Status string                   `json:"status"`
 	Comment string                  `json:"comment"`
 	Time string                     `json:"time"`
+	AccState AccountState           `json:"accountState"`
 }
 
 type AccountState struct {
@@ -286,10 +287,20 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		if err := json.Unmarshal(queryResult, &sender); err != nil {
 			panic(err)
 		}
-		sender.Transactions = append(sender.Transactions, transaction)
+
 		if (newSenderAmount != "") {
 			sender.Amount = newSenderAmount
+			transaction.AccState = AccountState {
+				Amount: newSenderAmount,
+				Currency: transaction.SenderAccountKey.Currency,
+			}
+		} else {
+			transaction.AccState = AccountState {
+				Amount: sender.Amount,
+				Currency: transaction.SenderAccountKey.Currency,
+			}
 		}
+		sender.Transactions = append(sender.Transactions, transaction)
 
 		jsonNewSenderAccountValue, _ := json.Marshal(sender)
 		invokeArgs := util.ToChaincodeArgs("put", string(jsonSenderAccountKey), string(jsonNewSenderAccountValue))
@@ -302,10 +313,19 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 		if err := json.Unmarshal(queryResult, &receiver); err != nil {
 			panic(err)
 		}
-		receiver.Transactions = append(receiver.Transactions, transaction)
 		if (newReceiverAmount != "") {
 			receiver.Amount = newReceiverAmount
+			transaction.AccState = AccountState {
+				Amount: newReceiverAmount,
+				Currency: transaction.ReceiverAccountKey.Currency,
+			}
+		} else {
+			transaction.AccState = AccountState {
+				Amount: receiver.Amount,
+				Currency: transaction.ReceiverAccountKey.Currency,
+			}
 		}
+		receiver.Transactions = append(receiver.Transactions, transaction)
 
 		jsonNewReceiverAccountValue, _ := json.Marshal(receiver)
 		invokeArgs = util.ToChaincodeArgs("put", string(jsonReceiverAccountKey), string(jsonNewReceiverAccountValue))
@@ -366,10 +386,7 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 					Status: transaction.Status,
 					Comment: transaction.Comment,
 				},
-				AccState: AccountState {
-					Currency: accountValue.Currency,
-					Amount: accountValue.Amount,
-				},
+				AccState: transaction.AccState,
 				Dets: Details {
 					InputMessage: inputMessage,
 					OutputMessage: outputMessage,
