@@ -230,8 +230,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			outputMessage = strings.Replace(outputMessage, getReceiver(mtMessage), getIntermediaryBIC(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
-			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.String(), ".", ",", -1), -1)
 			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) , "", -1)
+			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.FloatString(2), ".", ",", -1), -1)
 		} else {
 			outputMessage = MT199_TEMPLATE
 			outputMessage = strings.Replace(outputMessage, "[[SENDER]]", getReceiver(mtMessage), -1)
