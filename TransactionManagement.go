@@ -168,7 +168,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			ReceiverAccountKey: receiverAccountKey,
 			Fee: getTransferFee(mtMessage),
 			Amount: getTransferAmount(mtMessage),
-			TransactionDetails: Details { InputMessage: b64.StdEncoding.EncodeToString(byteMtMessage) },
+			TransactionDetails: Details { InputMessage: mtMessage },
 		}
 
 		// Validate transaction
@@ -240,7 +240,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			outputMessage = strings.Replace(outputMessage, "[[COMMENT]]", transaction.Comment, -1)
 		}
 
-		transaction.TransactionDetails.OutputMessage = b64.StdEncoding.EncodeToString([]byte(outputMessage))
+		transaction.TransactionDetails.OutputMessage = outputMessage
 		transaction.Time = time.Now().UTC().Format(time.RFC3339)
 
 		var newSenderAmount string
@@ -355,7 +355,10 @@ func (t *TransactionManagement) Query(stub shim.ChaincodeStubInterface, function
 					Currency: accountValue.Currency,
 					Amount: accountValue.Amount,
 				},
-				Dets: transaction.TransactionDetails,
+				Dets: Details {
+					InputMessage: b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.InputMessage)),
+					OutputMessage: b64.StdEncoding.EncodeToString([]byte(transaction.TransactionDetails.OutputMessage)),
+				},
 			}
 			transactionViews = append(transactionViews, transactionView)
 		}
