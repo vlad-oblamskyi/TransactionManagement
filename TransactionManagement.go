@@ -232,6 +232,8 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			outputMessage = strings.Replace(outputMessage, getSender(mtMessage), getReceiver(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, ":57A:" + getIntermediaryBIC(mtMessage), ":52A:" + getSender(mtMessage), -1)
 			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) + "\r\n" , "", -1)
+			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) + "\r" , "", -1)
+			outputMessage = strings.Replace(outputMessage, ":71G:" + transaction.SenderAccountKey.Currency + strings.Replace(transaction.Fee, ".", ",", -1) + "\n" , "", -1)
 			outputMessage = strings.Replace(outputMessage, strings.Replace(transaction.Amount, ".", ",", -1), strings.Replace(newAmount.FloatString(2), ".", ",", -1), -1)
 		} else {
 			outputMessage = MT199_TEMPLATE
@@ -275,6 +277,7 @@ func (t *TransactionManagement) Invoke(stub shim.ChaincodeStubInterface, functio
 			currentAmount.Sub(currentAmount, transferableAmount)
 			currentAmount.Sub(currentAmount, fee)
 			receiverAmount.Add(receiverAmount, transferableAmount)
+			receiverAmount.Sub(receiverAmount, fee)
 
 			newSenderAmount = currentAmount.FloatString(2)
 			newReceiverAmount = receiverAmount.FloatString(2)
